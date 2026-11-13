@@ -93,9 +93,12 @@ export default function App() {
   const showSheet = layout === 'sheet' && sheetOpen && selected !== null
 
   // Widening the window past the breakpoint closes the sheet, so narrowing again does not reopen it.
-  useEffect(() => {
+  // Adjusted during render rather than in an effect, which would cost an extra render.
+  const [previousLayout, setPreviousLayout] = useState(layout)
+  if (layout !== previousLayout) {
+    setPreviousLayout(layout)
     if (layout !== 'sheet') setSheetOpen(false)
-  }, [layout])
+  }
 
   function handleSelect(id: string) {
     select(id)
