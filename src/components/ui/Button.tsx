@@ -19,8 +19,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         'inline-flex h-10 items-center gap-2 px-4 text-sm font-medium tracking-tight transition-colors',
         'disabled:pointer-events-none disabled:opacity-40',
         variant === 'solid'
-          ? 'bg-ink text-paper hover:bg-ink/85'
-          : 'border border-ink text-ink hover:bg-ink hover:text-paper',
+          ? 'bg-primary text-paper hover:bg-primary/85'
+          : 'border border-primary text-primary hover:bg-primary hover:text-paper',
         className,
       )}
       {...props}

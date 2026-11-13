@@ -36,7 +36,7 @@ export function DetailPanel({ failure, pending, error, onStatus }: DetailPanelPr
     <aside
       id="failure-detail"
       aria-label="Failure detail"
-      className="border border-ink bg-paper lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto"
+      className="border border-primary bg-paper lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto"
     >
       <AnimatePresence mode="wait">
         {failure ? (

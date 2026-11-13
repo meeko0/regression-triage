@@ -50,11 +50,11 @@ export function FailureList({ failures, selectedId, onSelect }: FailureListProps
               aria-selected={selected}
               onClick={() => onSelect(failure.id)}
               className={cn(
-                'grid w-full grid-cols-[2.5rem_1fr] gap-x-4 gap-y-2 px-2 py-4 text-left transition-colors sm:grid-cols-[3rem_1.4fr_1fr_auto] sm:items-center',
-                selected ? 'bg-ink text-paper' : 'hover:bg-ink/5',
+                'group grid w-full grid-cols-[2.5rem_1fr] gap-x-4 gap-y-2 px-2 py-4 text-left transition-colors sm:grid-cols-[3rem_1.4fr_1fr_auto] sm:items-center',
+                selected ? 'bg-primary text-paper' : 'hover:bg-primary/5',
               )}
             >
-              <span className={cn('font-display text-2xl font-bold tabular-nums', selected ? 'text-paper/60' : 'text-muted')}>
+              <span className={cn('font-display text-2xl font-bold tabular-nums', selected ? 'text-accent-soft' : 'text-muted')}>
                 {String(index + 1).padStart(2, '0')}
               </span>
 
@@ -72,7 +72,7 @@ export function FailureList({ failures, selectedId, onSelect }: FailureListProps
                     </span>
                   )}
                 </span>
-                <span className={cn('mt-1 block truncate text-sm', selected ? 'text-paper/70' : 'text-muted')}>
+                <span className={cn('mt-1 block truncate text-sm', selected ? 'text-paper/75' : 'text-muted')}>
                   {failure.group} · {failure.assembly}
                 </span>
               </span>

@@ -39,7 +39,9 @@ E2E_CHROME_PATH=/path/to/chrome npm run test:e2e   # Playwright (omit the variab
 
 ## Design notes
 
-Visual direction is taken from cotton.design/work: black and off-white, large type, a filterable index, and short confident copy. I couldn't read that page's CSS, so the specific values in `tokens.json` are my own choices, not measurements from their site.
+Brand colors are navy `#111184` (primary) and olive `#848411` (accent). Run `npm run contrast` to check every text and background pair.
+
+**Surface: paper background, navy type, olive accents.** This is a reading tool. An engineer scans 48 rows, compares risk bars, and reads suggested actions, so the bulk of the screen has to be comfortable for small text. Navy on paper is 13.55:1, and the three risk colors all pass 4.5:1 on paper, so they can label text, not just fill bars. A navy background would put the risk colors and olive on a dark surface where they lose contrast (olive on navy is under 4.5:1), and it would make the dense list heavier to read. Olive measures 3.68:1 on paper, so it only appears at display size ("triage." in the header), as fills (the rule under the header), and as the focus ring. On navy surfaces, such as the selected row, a lighter olive (`accent-soft`, 9.34:1) takes its place.
 
 ## Not yet built
 

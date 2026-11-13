@@ -10,7 +10,7 @@ export function Header({ failures }: HeaderProps) {
   const stats = summarize(failures)
 
   return (
-    <header className="flex flex-col gap-8 border-b border-ink pb-8">
+    <header className="flex flex-col gap-8 border-b-4 border-accent pb-8">
       <div className="flex items-baseline justify-between gap-6">
         <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
           Nightly run {RUN_ID} · Mock data
@@ -23,7 +23,8 @@ export function Header({ failures }: HeaderProps) {
       <h1 className="font-display text-[clamp(3rem,8vw,6.5rem)] font-bold leading-[0.9] tracking-[-0.04em]">
         Regression
         <br />
-        triage.
+        {/* Olive is only used at display size: 3.68:1 on paper passes the 3:1 large-text minimum. */}
+        <span className="text-accent">triage.</span>
       </h1>
 
       <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">

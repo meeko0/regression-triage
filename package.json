@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "node scripts/vitest.mjs run",
     "test:watch": "node scripts/vitest.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "contrast": "node scripts/check-contrast.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.107.1",

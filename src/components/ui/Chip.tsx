@@ -17,13 +17,13 @@ export function Chip({ active, onClick, children, count }: ChipProps) {
       className={cn(
         'h-8 border px-3 text-[11px] uppercase tracking-[0.14em] transition-colors',
         active
-          ? 'border-ink bg-ink text-paper'
-          : 'border-line text-muted hover:border-ink hover:text-ink',
+          ? 'border-primary bg-primary text-paper'
+          : 'border-line text-muted hover:border-primary hover:text-primary',
       )}
     >
       {children}
       {count !== undefined && (
-        <span className="ml-2 tabular-nums opacity-60">{count}</span>
+        <span className="ml-2 tabular-nums">{count}</span>
       )}
     </button>
   )
