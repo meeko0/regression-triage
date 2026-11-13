@@ -1,4 +1,6 @@
 import type { ErrorGroup, Failure, Status } from '../types'
+import { ENGINEERS } from './team'
+import { addDays } from '../lib/dates'
 
 // Mock data only. Part names, assemblies, and run IDs are invented.
 // Nothing here comes from a real vehicle program or internal system.
@@ -95,7 +97,10 @@ function statusFor(roll: number): Status {
 
 export function buildMockFailures(count = 48, seed = 20261112): Failure[] {
   const rand = mulberry32(seed)
+  // A second stream for owners and due dates, so adding them did not change the other fields.
+  const assign = mulberry32(seed ^ 0x9e3779b9)
   const start = Date.parse(RUN_START)
+  const runDate = RUN_START.slice(0, 10)
 
   return Array.from({ length: count }, (_, i) => {
     const group = GROUPS[Math.floor(rand() * GROUPS.length)]
@@ -103,6 +108,11 @@ export function buildMockFailures(count = 48, seed = 20261112): Failure[] {
     const variant = variants[Math.floor(rand() * variants.length)]
     const part = PARTS[Math.floor(rand() * PARTS.length)]
     const code = `${String.fromCharCode(65 + Math.floor(rand() * 26))}-${10 + Math.floor(rand() * 89)}`
+
+    // About two in three failures already have an owner. Due dates fall from 3 days before the run
+    // to 6 days after it, so some are overdue.
+    const owner = assign() < 0.65 ? ENGINEERS[Math.floor(assign() * ENGINEERS.length)].id : null
+    const dueDate = owner ? addDays(runDate, Math.floor(assign() * 10) - 3) : null
 
     return {
       id: `RT-${String(i + 1).padStart(3, '0')}`,
@@ -114,6 +124,8 @@ export function buildMockFailures(count = 48, seed = 20261112): Failure[] {
       risk: Math.round(rand() * 100),
       status: statusFor(rand()),
       detectedAt: new Date(start + i * 7 * 60_000).toISOString(),
+      owner,
+      dueDate,
     }
   })
 }

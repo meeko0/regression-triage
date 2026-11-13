@@ -1,5 +1,5 @@
 import { MOCK_FAILURES, RUN_ID } from '../data/mockFailures'
-import type { Failure, Status } from '../types'
+import type { Failure, FailurePatch } from '../types'
 
 // In-memory stand-in for a real API. Swap these functions for fetch calls later.
 //
@@ -8,7 +8,7 @@ import type { Failure, Status } from '../types'
 
 export const SERVER_STORAGE_KEY = 'regression-triage:mock-server:v1'
 
-type Overrides = Record<string, Partial<Pick<Failure, 'status'>>>
+type Overrides = Record<string, FailurePatch>
 
 function loadOverrides(): Overrides {
   try {
@@ -41,12 +41,12 @@ export async function fetchFailures(): Promise<Failure[]> {
   return current()
 }
 
-export async function updateFailureStatus(id: string, status: Status): Promise<Failure> {
+export async function updateFailure(id: string, patch: FailurePatch): Promise<Failure> {
   await delay(250)
   if (!MOCK_FAILURES.some(f => f.id === id)) {
     throw new Error(`Failure ${id} was not found`)
   }
-  overrides = { ...overrides, [key(id)]: { ...overrides[key(id)], status } }
+  overrides = { ...overrides, [key(id)]: { ...overrides[key(id)], ...patch } }
   saveOverrides(overrides)
   return current().find(f => f.id === id)!
 }

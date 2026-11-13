@@ -2,6 +2,7 @@ import { RUN_ID } from '../data/mockFailures'
 import type { Failure } from '../types'
 import { summarize } from '../lib/triage'
 import { AboutDialog } from './AboutDialog'
+import { CURRENT_USER_ID, engineerById } from '../data/team'
 
 interface HeaderProps {
   failures: Failure[]
@@ -14,7 +15,7 @@ export function Header({ failures }: HeaderProps) {
     <header className="flex flex-col gap-8 border-b-4 border-accent pb-8">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3">
         <p className="label-micro text-muted">
-          Nightly run {RUN_ID} · Mock data
+          Nightly run {RUN_ID} · Viewing as {engineerById(CURRENT_USER_ID)?.name} · Mock data
         </p>
         <div className="flex items-baseline gap-6">
           <p className="label-micro hidden text-muted sm:block">Use ↑ ↓ or J K to move</p>

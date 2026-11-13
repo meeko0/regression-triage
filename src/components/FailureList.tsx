@@ -1,6 +1,8 @@
 import { motion } from 'motion/react'
 import type { Failure } from '../types'
-import { isBlocking } from '../lib/triage'
+import { isBlocking, isOverdue } from '../lib/triage'
+import { engineerById } from '../data/team'
+import { OverdueBadge } from './OverdueBadge'
 import { cn } from '../lib/utils'
 import { RiskBar } from './RiskBar'
 import { StatusPill } from './StatusPill'
@@ -71,9 +73,11 @@ export function FailureList({ failures, selectedId, onSelect }: FailureListProps
                       Blocking
                     </span>
                   )}
+                  {isOverdue(failure) && <OverdueBadge />}
                 </span>
                 <span className={cn('mt-1 block truncate text-body-sm', selected ? 'text-paper/75' : 'text-muted')}>
                   {failure.group} · {failure.assembly}
+                  {failure.owner && <> · {engineerById(failure.owner)?.name}</>}
                 </span>
               </span>
 

@@ -8,6 +8,7 @@ export interface ViewState {
   status: StatusFilter
   sort: SortKey
   blockingOnly: boolean
+  mine: boolean
   selectedId: string | null
 }
 
@@ -16,6 +17,7 @@ interface TriageState extends ViewState {
   setStatus: (status: StatusFilter) => void
   setSort: (sort: SortKey) => void
   toggleBlockingOnly: () => void
+  toggleMine: () => void
   select: (id: string | null) => void
   clearFilters: () => void
   reset: () => void
@@ -26,6 +28,7 @@ export const initialView: ViewState = {
   status: 'all',
   sort: 'risk',
   blockingOnly: false,
+  mine: false,
   selectedId: null,
 }
 
@@ -35,8 +38,14 @@ export const useTriageStore = create<TriageState>()(set => ({
   setStatus: status => set({ status }),
   setSort: sort => set({ sort }),
   toggleBlockingOnly: () => set(state => ({ blockingOnly: !state.blockingOnly })),
+  toggleMine: () => set(state => ({ mine: !state.mine })),
   select: selectedId => set({ selectedId }),
   clearFilters: () =>
-    set({ group: initialView.group, status: initialView.status, blockingOnly: initialView.blockingOnly }),
+    set({
+      group: initialView.group,
+      status: initialView.status,
+      blockingOnly: initialView.blockingOnly,
+      mine: initialView.mine,
+    }),
   reset: () => set(initialView),
 }))

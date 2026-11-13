@@ -1,5 +1,6 @@
 import type { ErrorGroup, Failure, GroupFilter, SortKey, StatusFilter } from '../types'
 import { countByGroup, isBlocking } from '../lib/triage'
+import { CURRENT_USER_ID, engineerById } from '../data/team'
 import { Chip } from './ui/Chip'
 
 const GROUPS: GroupFilter[] = ['all', 'Interference', 'Constraints', 'Mass', 'References']
@@ -18,15 +19,19 @@ interface FilterBarProps {
   status: StatusFilter
   sort: SortKey
   blockingOnly: boolean
+  mine: boolean
   onGroup: (group: GroupFilter) => void
   onStatus: (status: StatusFilter) => void
   onSort: (sort: SortKey) => void
   onToggleBlocking: () => void
+  onToggleMine: () => void
 }
 
 export function FilterBar(props: FilterBarProps) {
   const counts = countByGroup(props.failures)
   const blockingCount = props.failures.filter(isBlocking).length
+  const mineCount = props.failures.filter(f => f.owner === CURRENT_USER_ID).length
+  const me = engineerById(CURRENT_USER_ID)
 
   return (
     <div className="flex flex-col gap-4">
@@ -58,6 +63,9 @@ export function FilterBar(props: FilterBarProps) {
           ))}
           <Chip active={props.blockingOnly} onClick={props.onToggleBlocking} count={blockingCount}>
             Blocking only
+          </Chip>
+          <Chip active={props.mine} onClick={props.onToggleMine} count={mineCount} title={`Assigned to ${me?.name}`}>
+            Mine
           </Chip>
         </fieldset>
 

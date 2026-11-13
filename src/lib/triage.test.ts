@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Failure } from '../types'
-import { applyFilters, countByGroup, isBlocking, riskLevel, sortFailures, summarize } from './triage'
+import { applyFilters, countByGroup, isBlocking, isOverdue, riskLevel, sortFailures, summarize } from './triage'
 
 const fixture: Failure[] = [
   {
@@ -13,6 +13,8 @@ const fixture: Failure[] = [
     risk: 90,
     status: 'open',
     detectedAt: '2026-11-12T23:00:00.000Z',
+    owner: 'ines',
+    dueDate: '2026-11-10',
   },
   {
     id: 'B',
@@ -24,6 +26,8 @@ const fixture: Failure[] = [
     risk: 75,
     status: 'resolved',
     detectedAt: '2026-11-12T23:10:00.000Z',
+    owner: 'tomas',
+    dueDate: '2026-11-01',
   },
   {
     id: 'C',
@@ -35,6 +39,8 @@ const fixture: Failure[] = [
     risk: 42,
     status: 'investigating',
     detectedAt: '2026-11-12T22:50:00.000Z',
+    owner: null,
+    dueDate: null,
   },
   {
     id: 'D',
@@ -46,6 +52,8 @@ const fixture: Failure[] = [
     risk: 12,
     status: 'open',
     detectedAt: '2026-11-12T23:20:00.000Z',
+    owner: 'ines',
+    dueDate: '2026-11-20',
   },
 ]
 
@@ -66,6 +74,20 @@ describe('isBlocking', () => {
   })
 })
 
+describe('isOverdue', () => {
+  it('is true only when the due date has passed and the failure is not resolved', () => {
+    const now = '2026-11-13'
+    expect(isOverdue(fixture[0], now)).toBe(true) // due Nov 10, open
+    expect(isOverdue(fixture[1], now)).toBe(false) // resolved
+    expect(isOverdue(fixture[2], now)).toBe(false) // no due date
+    expect(isOverdue(fixture[3], now)).toBe(false) // due Nov 20
+  })
+
+  it('does not count a failure due today as overdue', () => {
+    expect(isOverdue({ ...fixture[0], dueDate: '2026-11-13' }, '2026-11-13')).toBe(false)
+  })
+})
+
 describe('applyFilters', () => {
   it('returns everything when no filter is set', () => {
     expect(applyFilters(fixture, { group: 'all', status: 'all', blockingOnly: false })).toHaveLength(4)
@@ -79,6 +101,11 @@ describe('applyFilters', () => {
   it('filters by status', () => {
     const result = applyFilters(fixture, { group: 'all', status: 'resolved', blockingOnly: false })
     expect(result.map(f => f.id)).toEqual(['B'])
+  })
+
+  it('keeps only failures owned by the current user when mine is set', () => {
+    const result = applyFilters(fixture, { group: 'all', status: 'all', blockingOnly: false, mine: true })
+    expect(result.map(f => f.id)).toEqual(['A', 'D'])
   })
 
   it('keeps only blocking failures when blockingOnly is set', () => {

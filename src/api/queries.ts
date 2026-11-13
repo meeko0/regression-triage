@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchFailures, updateFailureStatus } from './failures'
-import type { Failure, Status } from '../types'
+import { fetchFailures, updateFailure } from './failures'
+import type { Failure, FailurePatch, Status } from '../types'
 import { RUN_ID } from '../data/mockFailures'
 import { recordKey, useNotesStore } from '../store/notesStore'
 
@@ -16,7 +16,7 @@ export function useFailures() {
 
 interface UpdateVars {
   id: string
-  status: Status
+  patch: FailurePatch
 }
 
 interface UpdateContext {
@@ -24,19 +24,17 @@ interface UpdateContext {
   from: Status | undefined
 }
 
-export function useUpdateStatus() {
+/** Changes status, owner, or due date. The change shows at once and rolls back if the server rejects it. */
+export function useUpdateFailure() {
   const queryClient = useQueryClient()
 
   return useMutation<Failure, Error, UpdateVars, UpdateContext>({
-    mutationFn: ({ id, status }) => updateFailureStatus(id, status),
+    mutationFn: ({ id, patch }) => updateFailure(id, patch),
 
-    // Optimistic update: the row changes immediately, and rolls back if the server rejects it.
-    onMutate: async ({ id, status }) => {
+    onMutate: async ({ id, patch }) => {
       await queryClient.cancelQueries({ queryKey: failuresKey })
       const previous = queryClient.getQueryData<Failure[]>(failuresKey)
-      queryClient.setQueryData<Failure[]>(failuresKey, old =>
-        old?.map(f => (f.id === id ? { ...f, status } : f)),
-      )
+      queryClient.setQueryData<Failure[]>(failuresKey, old => old?.map(f => (f.id === id ? { ...f, ...patch } : f)))
       const from = previous?.find(f => f.id === id)?.status
       return { previous, from }
     },
@@ -47,10 +45,10 @@ export function useUpdateStatus() {
       }
     },
 
-    // Only confirmed changes go into the status history. A rolled-back change never happened.
-    onSuccess: (_failure, { id, status }, context) => {
-      if (context?.from && context.from !== status) {
-        useNotesStore.getState().recordStatusChange(recordKey(RUN_ID, id), context.from, status)
+    // Only confirmed status changes go into the history. A rolled-back change never happened.
+    onSuccess: (_failure, { id, patch }, context) => {
+      if (patch.status && context?.from && context.from !== patch.status) {
+        useNotesStore.getState().recordStatusChange(recordKey(RUN_ID, id), context.from, patch.status)
       }
     },
 

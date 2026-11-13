@@ -22,6 +22,7 @@ export function searchToView(search: string): ViewState {
     status: oneOf(STATUSES, params.get('status')) ?? initialView.status,
     sort: oneOf(SORTS, params.get('sort')) ?? initialView.sort,
     blockingOnly: params.get('blocking') === '1',
+    mine: params.get('mine') === '1',
     selectedId: id && ID_PATTERN.test(id) ? id : initialView.selectedId,
   }
 }
@@ -33,14 +34,15 @@ export function viewToSearch(view: ViewState): string {
   if (view.status !== initialView.status) params.set('status', view.status)
   if (view.sort !== initialView.sort) params.set('sort', view.sort)
   if (view.blockingOnly) params.set('blocking', '1')
+  if (view.mine) params.set('mine', '1')
   if (view.selectedId) params.set('id', view.selectedId)
   const text = params.toString()
   return text ? `?${text}` : ''
 }
 
 function pickView(state: ViewState): ViewState {
-  const { group, status, sort, blockingOnly, selectedId } = state
-  return { group, status, sort, blockingOnly, selectedId }
+  const { group, status, sort, blockingOnly, mine, selectedId } = state
+  return { group, status, sort, blockingOnly, mine, selectedId }
 }
 
 /**

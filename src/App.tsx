@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useFailures, useUpdateStatus } from './api/queries'
+import { useFailures, useUpdateFailure } from './api/queries'
 import { DetailPanel } from './components/DetailPanel'
 import { FailureList } from './components/FailureList'
 import { FilterBar } from './components/FilterBar'
@@ -12,14 +12,26 @@ import { RUN_ID } from './data/mockFailures'
 
 export default function App() {
   const { data: failures = [], isPending, isError, refetch } = useFailures()
-  const mutation = useUpdateStatus()
+  const mutation = useUpdateFailure()
 
-  const { group, status, sort, blockingOnly, selectedId, setGroup, setStatus, setSort, toggleBlockingOnly, select } =
-    useTriageStore()
+  const {
+    group,
+    status,
+    sort,
+    blockingOnly,
+    mine,
+    selectedId,
+    setGroup,
+    setStatus,
+    setSort,
+    toggleBlockingOnly,
+    toggleMine,
+    select,
+  } = useTriageStore()
 
   const visible = useMemo(
-    () => sortFailures(applyFilters(failures, { group, status, blockingOnly }), sort),
-    [failures, group, status, blockingOnly, sort],
+    () => sortFailures(applyFilters(failures, { group, status, blockingOnly, mine }), sort),
+    [failures, group, status, blockingOnly, mine, sort],
   )
 
   const selected = failures.find(f => f.id === selectedId) ?? null
@@ -39,7 +51,7 @@ export default function App() {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement | null
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      if (target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)) {
         return
       }
       // Leave keys alone while a dialog (About, command palette) has focus.
@@ -101,10 +113,12 @@ export default function App() {
             status={status}
             sort={sort}
             blockingOnly={blockingOnly}
+            mine={mine}
             onGroup={setGroup}
             onStatus={setStatus}
             onSort={setSort}
             onToggleBlocking={toggleBlockingOnly}
+            onToggleMine={toggleMine}
           />
 
           <FailureList failures={visible} selectedId={selectedId} onSelect={handleSelect} />
@@ -115,11 +129,14 @@ export default function App() {
           pending={mutation.isPending}
           error={mutation.isError ? 'That change didn’t save. It has been rolled back, so try again.' : null}
           onStatus={nextStatus => {
-            if (selected) mutation.mutate({ id: selected.id, status: nextStatus })
+            if (selected) mutation.mutate({ id: selected.id, patch: { status: nextStatus } })
           }}
           record={record}
           onNote={note => {
             if (selectedKey) setNote(selectedKey, note)
+          }}
+          onAssign={patch => {
+            if (selected) mutation.mutate({ id: selected.id, patch })
           }}
         />
       </div>

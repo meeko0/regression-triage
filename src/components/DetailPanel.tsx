@@ -1,6 +1,10 @@
 import { useId } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import type { Failure, Status } from '../types'
+import type { Failure, FailurePatch, Status } from '../types'
+import { ENGINEERS, isEngineerId } from '../data/team'
+import { formatDue } from '../lib/dates'
+import { isOverdue } from '../lib/triage'
+import { OverdueBadge } from './OverdueBadge'
 import { RUN_START } from '../data/mockFailures'
 import { EMPTY_RECORD, type FailureRecord } from '../store/notesStore'
 import { Button } from './ui/Button'
@@ -14,6 +18,7 @@ export interface DetailPanelProps {
   onStatus: (status: Status) => void
   record?: FailureRecord
   onNote?: (note: string) => void
+  onAssign?: (patch: Pick<FailurePatch, 'owner' | 'dueDate'>) => void
 }
 
 // Keeps the part code (for example "R-95") on one line so it never wraps.
@@ -43,7 +48,15 @@ const dateTimeFormat = new Intl.DateTimeFormat('en-US', {
   timeZoneName: 'short',
 })
 
-export function DetailPanel({ failure, pending, error, onStatus, record = EMPTY_RECORD, onNote }: DetailPanelProps) {
+export function DetailPanel({
+  failure,
+  pending,
+  error,
+  onStatus,
+  record = EMPTY_RECORD,
+  onNote,
+  onAssign,
+}: DetailPanelProps) {
   const noteId = useId()
 
   return (
@@ -110,6 +123,55 @@ export function DetailPanel({ failure, pending, error, onStatus, record = EMPTY_
                 {error}
               </p>
             )}
+
+            <div className="grid grid-cols-1 gap-4 border-t border-line pt-6 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label htmlFor={`${noteId}-owner`} className="label-display text-muted">
+                  Owner
+                </label>
+                <select
+                  id={`${noteId}-owner`}
+                  value={failure.owner ?? ''}
+                  onChange={event => {
+                    const value = event.target.value
+                    onAssign?.({ owner: isEngineerId(value) ? value : null })
+                  }}
+                  className="h-10 border border-muted bg-paper px-2 text-body-sm"
+                >
+                  <option value="">Unassigned</option>
+                  {ENGINEERS.map(e => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label htmlFor={`${noteId}-due`} className="label-display text-muted">
+                  Due
+                </label>
+                <input
+                  id={`${noteId}-due`}
+                  type="date"
+                  value={failure.dueDate ?? ''}
+                  onChange={event => onAssign?.({ dueDate: event.target.value || null })}
+                  aria-describedby={`${noteId}-due-state`}
+                  className="h-10 border border-muted bg-paper px-2 text-body-sm"
+                />
+              </div>
+              <p id={`${noteId}-due-state`} className="flex items-center gap-2 text-caption text-muted sm:col-span-2">
+                {isOverdue(failure) ? (
+                  <>
+                    <OverdueBadge />
+                    <span>Was due {formatDue(failure.dueDate!)}.</span>
+                  </>
+                ) : failure.dueDate ? (
+                  <span>Due {formatDue(failure.dueDate)}.</span>
+                ) : (
+                  <span>No due date.</span>
+                )}
+              </p>
+            </div>
 
             <section aria-labelledby={`${noteId}-history`} className="border-t border-line pt-6">
               <h3 id={`${noteId}-history`} className="label-display text-muted">

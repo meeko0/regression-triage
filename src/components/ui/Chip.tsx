@@ -6,13 +6,15 @@ interface ChipProps {
   onClick: () => void
   children: ReactNode
   count?: number
+  title?: string
 }
 
-export function Chip({ active, onClick, children, count }: ChipProps) {
+export function Chip({ active, onClick, children, count, title }: ChipProps) {
   return (
     <button
       type="button"
       aria-pressed={active}
+      title={title}
       onClick={onClick}
       className={cn(
         'label-micro h-8 border px-3 transition-colors',
