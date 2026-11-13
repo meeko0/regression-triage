@@ -37,6 +37,8 @@ export default function App() {
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
         return
       }
+      // Leave keys alone while a dialog (About, command palette) has focus.
+      if (target?.closest?.('[role="dialog"]')) return
       const forward = event.key === 'ArrowDown' || event.key === 'j'
       const back = event.key === 'ArrowUp' || event.key === 'k'
       if (!forward && !back) return

@@ -1,8 +1,23 @@
 # Regression triage
 
-A portfolio prototype for the task: "An engineer checks last night's regression run and decides which failures block the next design release."
+A portfolio prototype for one task: an engineer checks last night's regression run and decides which failures block the next design release.
 
-All data is mock. Part names, assemblies, and run IDs are invented, and nothing comes from a real vehicle program or internal system.
+## What this is
+
+Every night, an automated regression run checks a vehicle design model for problems: parts that collide, constraints that broke, mass over budget, links to outdated parts. A run can produce dozens of failures. Most are noise or already known. A few block the next design release, and someone has to find them before the morning review.
+
+This prototype is for the design engineer who does that first pass. Version 1 ranks failures by risk, filters them by error type and status, and flags the ones that block a release. It shows a suggested next step for each one and lets the engineer move it to investigating or resolved. Status changes save at once and roll back if the server rejects them.
+
+Out of scope on purpose: real authentication, a real API, editing the design model, and notifications. **All data is mock.** Part names, assemblies, engineers, and run IDs are invented, and nothing comes from a real vehicle program or internal system.
+
+## Why it's built this way
+
+- **Pure functions for triage logic.** Filtering, sorting, and the "blocking" rule live in `src/lib/triage.ts` with no React, so they are easy to test and reuse.
+- **Server state and UI state are separate.** TanStack Query owns the failure data. Zustand owns what the user is looking at. Neither one copies the other.
+- **Optimistic updates with rollback.** A status change shows at once, because waiting on a slow nightly-run service would break the flow of triage.
+- **Seeded mock data.** The same seed always gives the same run, so tests and screenshots are stable.
+- **Tokens as the source of truth.** Colors, fonts, and the type scale live in `tokens.json`, with a test that keeps the CSS in sync and a script that checks contrast.
+- **Keyboard first.** Engineers triage dozens of rows, so J, K, and the arrow keys move through the list.
 
 ## Run it
 
