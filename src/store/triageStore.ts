@@ -1,34 +1,42 @@
 import { create } from 'zustand'
 import type { GroupFilter, SortKey, StatusFilter } from '../types'
 
-interface TriageState {
+// What the user is looking at. This store is the single source of truth for the view.
+// src/store/urlSync.ts mirrors it to the query string and back.
+export interface ViewState {
   group: GroupFilter
   status: StatusFilter
   sort: SortKey
   blockingOnly: boolean
   selectedId: string | null
+}
+
+interface TriageState extends ViewState {
   setGroup: (group: GroupFilter) => void
   setStatus: (status: StatusFilter) => void
   setSort: (sort: SortKey) => void
   toggleBlockingOnly: () => void
   select: (id: string | null) => void
+  clearFilters: () => void
   reset: () => void
 }
 
-const initialState = {
-  group: 'all' as GroupFilter,
-  status: 'all' as StatusFilter,
-  sort: 'risk' as SortKey,
+export const initialView: ViewState = {
+  group: 'all',
+  status: 'all',
+  sort: 'risk',
   blockingOnly: false,
-  selectedId: null as string | null,
+  selectedId: null,
 }
 
 export const useTriageStore = create<TriageState>()(set => ({
-  ...initialState,
+  ...initialView,
   setGroup: group => set({ group }),
   setStatus: status => set({ status }),
   setSort: sort => set({ sort }),
   toggleBlockingOnly: () => set(state => ({ blockingOnly: !state.blockingOnly })),
   select: selectedId => set({ selectedId }),
-  reset: () => set(initialState),
+  clearFilters: () =>
+    set({ group: initialView.group, status: initialView.status, blockingOnly: initialView.blockingOnly }),
+  reset: () => set(initialView),
 }))

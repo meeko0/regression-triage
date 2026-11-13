@@ -37,7 +37,7 @@ export function AboutDialog() {
           <div className="flex flex-col gap-3 text-body">
             <p>
               You can filter by error type and status, read a suggested next step, and move a failure to investigating or
-              resolved.
+              resolved. The view is kept in the URL, so you can share a filtered list.
             </p>
             <p className="border-l-4 border-accent pl-4">
               All data is mock. Parts, assemblies, engineers, and run IDs are invented. Nothing comes from a real vehicle

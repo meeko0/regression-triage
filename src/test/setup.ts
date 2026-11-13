@@ -8,4 +8,5 @@ afterEach(() => {
   cleanup()
   resetMockServer()
   useTriageStore.getState().reset()
+  window.history.replaceState(null, '', '/')
 })

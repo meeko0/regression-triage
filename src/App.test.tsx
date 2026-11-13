@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import App from './App'
 import { MOCK_FAILURES } from './data/mockFailures'
 import { sortFailures } from './lib/triage'
+import { startUrlSync } from './store/urlSync'
 
 function renderApp() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -65,6 +66,21 @@ describe('App', () => {
 
     await user.keyboard('{ArrowDown}')
     expect(options[1]).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('opens the view described by the URL and keeps the URL in step', async () => {
+    const user = userEvent.setup()
+    const resolved = sortFailures(MOCK_FAILURES.filter(f => f.status === 'resolved'), 'risk')
+    window.history.replaceState(null, '', `/?status=resolved&id=${resolved[1].id}`)
+    const stop = startUrlSync()
+    renderApp()
+
+    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(resolved.length))
+    expect(screen.getAllByRole('option')[1]).toHaveAttribute('aria-selected', 'true')
+
+    await user.click(screen.getByRole('button', { name: /^newest/i }))
+    expect(window.location.search).toContain('sort=newest')
+    stop()
   })
 })
 
