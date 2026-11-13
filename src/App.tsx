@@ -5,6 +5,7 @@ import { FailureList } from './components/FailureList'
 import { FilterBar } from './components/FilterBar'
 import { Header } from './components/Header'
 import { OverviewCharts } from './components/OverviewCharts'
+import { CommandPalette } from './components/CommandPalette'
 import { Button } from './components/ui/Button'
 import { applyFilters, sortFailures } from './lib/triage'
 import { useTriageStore } from './store/triageStore'
@@ -30,6 +31,7 @@ export default function App() {
     toggleBlockingOnly,
     toggleMine,
     select,
+    clearFilters,
   } = useTriageStore()
 
   const visible = useMemo(
@@ -87,11 +89,22 @@ export default function App() {
     }
   }
 
+  // From the command palette. If the current filters hide the failure, clear them so the jump sticks.
+  function jumpTo(id: string) {
+    if (!visible.some(f => f.id === id)) clearFilters()
+    handleSelect(id)
+  }
+
   return (
     <main className="mx-auto max-w-[1400px] px-6 py-10 sm:px-10 lg:py-16">
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-16">
         <section className="flex min-w-0 flex-col gap-10">
-          <Header runId={runId} onRun={setRun} failures={isPending || isError ? undefined : failures} />
+          <Header
+            runId={runId}
+            onRun={setRun}
+            failures={isPending || isError ? undefined : failures}
+            actions={<CommandPalette failures={failures} onJump={jumpTo} />}
+          />
 
           {!isPending && !isError && <OverviewCharts failures={failures} />}
 

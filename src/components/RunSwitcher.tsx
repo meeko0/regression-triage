@@ -1,14 +1,6 @@
-import { LATEST_RUN_ID, RUNS } from '../data/mockFailures'
+import { RUNS } from '../data/mockFailures'
+import { runLabel } from '../lib/labels'
 import { Chip } from './ui/Chip'
-
-const nightFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
-
-export function runLabel(runId: string) {
-  const run = RUNS.find(r => r.id === runId)
-  if (!run) return runId
-  const night = nightFormat.format(new Date(run.start))
-  return run.id === LATEST_RUN_ID ? `${night}, latest` : night
-}
 
 interface RunSwitcherProps {
   runId: string

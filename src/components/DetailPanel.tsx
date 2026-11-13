@@ -8,7 +8,8 @@ import { OverdueBadge } from './OverdueBadge'
 import { EMPTY_RECORD, type FailureRecord } from '../store/notesStore'
 import { Button } from './ui/Button'
 import { RiskBar } from './RiskBar'
-import { StatusPill, STATUS_LABEL } from './StatusPill'
+import { StatusPill } from './StatusPill'
+import { STATUS_LABEL } from '../lib/labels'
 
 export interface DetailPanelProps {
   failure: Failure | null

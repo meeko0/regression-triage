@@ -8,6 +8,7 @@ import { isOverdue, sortFailures } from './lib/triage'
 import { setClock } from './lib/dates'
 import { CURRENT_USER_ID } from './data/team'
 import { startUrlSync } from './store/urlSync'
+import { useTriageStore } from './store/triageStore'
 import { NOTES_STORAGE_KEY } from './store/notesStore'
 
 const listOptions = () => within(screen.getByRole('listbox', { name: 'Failures' })).getAllByRole('option')
@@ -128,6 +129,84 @@ describe('App', () => {
     await waitFor(() => expect(listOptions()).toHaveLength(RUNS[2].count))
     // The selection resets, then falls back to the first row of the new run.
     expect(listOptions()[0]).toHaveAttribute('aria-selected', 'true')
+  })
+
+  describe('command palette', () => {
+    it('opens with Ctrl+K, jumps to a failure, and returns focus to the trigger', async () => {
+      const user = userEvent.setup()
+      renderApp()
+      await findListOptions()
+      const trigger = screen.getByRole('button', { name: /jump to/i })
+
+      await user.keyboard('{Control>}k{/Control}')
+      const dialog = await screen.findByRole('dialog', { name: 'Command palette' })
+      const input = within(dialog).getByRole('combobox')
+      expect(input).toHaveFocus()
+
+      const target = MOCK_FAILURES[9]
+      await user.type(input, target.id)
+      const options = within(dialog).getAllByRole('option')
+      expect(options[0]).toHaveTextContent(target.id)
+      expect(input).toHaveAttribute('aria-activedescendant', options[0].id)
+
+      await user.keyboard('{Enter}')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(trigger).toHaveFocus()
+      const selected = listOptions().find(o => o.getAttribute('aria-selected') === 'true')
+      expect(selected).toHaveTextContent(target.part)
+    })
+
+    it('moves with the arrow keys, wraps, and closes on Escape', async () => {
+      const user = userEvent.setup()
+      renderApp()
+      await findListOptions()
+      const trigger = screen.getByRole('button', { name: /jump to/i })
+      await user.click(trigger)
+
+      const dialog = await screen.findByRole('dialog', { name: 'Command palette' })
+      const input = within(dialog).getByRole('combobox')
+      await user.type(input, 'sort by')
+      const options = within(dialog).getAllByRole('option')
+      expect(options).toHaveLength(2)
+
+      await user.keyboard('{ArrowDown}')
+      expect(options[1]).toHaveAttribute('aria-selected', 'true')
+      await user.keyboard('{ArrowDown}')
+      expect(options[0]).toHaveAttribute('aria-selected', 'true')
+      await user.keyboard('{ArrowUp}')
+      expect(options[1]).toHaveAttribute('aria-selected', 'true')
+
+      await user.keyboard('{Escape}')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(trigger).toHaveFocus()
+    })
+
+    it('changes a filter and switches runs', async () => {
+      const user = userEvent.setup()
+      renderApp()
+      await findListOptions()
+
+      await user.keyboard('{Control>}k{/Control}')
+      await user.type(await screen.findByRole('combobox'), 'only resolved{Enter}')
+      expect(useTriageStore.getState().status).toBe('resolved')
+
+      await user.keyboard('{Control>}k{/Control}')
+      await user.type(await screen.findByRole('combobox'), 'nov 10{Enter}')
+      expect(screen.getByTestId('run-id')).toHaveTextContent(RUNS[2].id)
+    })
+
+    it('clears filters that would hide the failure it jumps to', async () => {
+      const user = userEvent.setup()
+      renderApp()
+      await findListOptions()
+      useTriageStore.getState().setStatus('resolved')
+      const hidden = MOCK_FAILURES.find(f => f.status === 'open')!
+
+      await user.keyboard('{Control>}k{/Control}')
+      await user.type(await screen.findByRole('combobox'), `${hidden.id}{Enter}`)
+      expect(useTriageStore.getState().status).toBe('all')
+      expect(useTriageStore.getState().selectedId).toBe(hidden.id)
+    })
   })
 
   it('adds a history entry when the status changes, and saves the note', async () => {

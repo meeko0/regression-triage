@@ -10,7 +10,7 @@ const css = readFileSync(join(process.cwd(), 'src/index.css'), 'utf8')
 const theme = css.slice(css.indexOf('@theme'), css.indexOf('}', css.indexOf('@theme')))
 
 function themeVar(name: string) {
-  const match = theme.match(new RegExp(`--${name}:\s*([^;]+);`))
+  const match = theme.match(new RegExp(`--${name}:\\s*([^;]+);`))
   return match?.[1].trim()
 }
 

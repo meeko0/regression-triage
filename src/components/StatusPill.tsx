@@ -1,11 +1,6 @@
 import type { Status } from '../types'
 import { cn } from '../lib/utils'
-
-export const STATUS_LABEL: Record<Status, string> = {
-  open: 'Open',
-  investigating: 'Investigating',
-  resolved: 'Resolved',
-}
+import { STATUS_LABEL } from '../lib/labels'
 
 export function StatusPill({ status }: { status: Status }) {
   return (
