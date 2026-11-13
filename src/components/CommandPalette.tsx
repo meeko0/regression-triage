@@ -132,7 +132,7 @@ export function CommandPalette({ failures, onJump }: CommandPaletteProps) {
           className="group label-micro flex h-8 items-center gap-3 border border-primary px-3 text-primary hover:bg-primary hover:text-paper"
         >
           Jump to
-          <kbd className="font-sans text-muted group-hover:text-paper">{shortcut}</kbd>
+          <kbd className="hidden font-sans text-muted group-hover:text-paper sm:inline">{shortcut}</kbd>
         </button>
       </Dialog.Trigger>
 
