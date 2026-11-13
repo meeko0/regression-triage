@@ -1,6 +1,6 @@
 # Regression triage
 
-A portfolio prototype for one task: an engineer checks last night's regression run and decides which failures block the next design release.
+A prototype for an engineer checks last night's regression run and decides which failures block the next design release.
 
 ![Desktop view at 1440px](docs/screenshot-desktop.png)
 
@@ -22,31 +22,6 @@ Out of scope on purpose: real authentication, a real API, editing the design mod
 - **Tokens as the source of truth.** Colors, fonts, and the type scale live in `tokens.json`, with a test that keeps the CSS in sync and a script that checks contrast.
 - **Keyboard first.** Engineers triage dozens of rows, so J, K, the arrow keys, and a command palette cover the main paths.
 - **No chart library.** Two small charts do not justify a dependency, and plain SVG makes the accessible version easy to control.
-
-## Set up and test (Windows PowerShell)
-
-Tested with Node 24 and npm 11. Run these from the project folder.
-
-```powershell
-npm install
-npx playwright install chromium   # once, for the e2e tests
-
-npm run dev                # local dev server at http://localhost:5173
-npm test                   # unit and component tests (Vitest + Testing Library)
-npm run build              # type-check and production build
-npm run contrast           # WCAG contrast report for every color pair
-npm run test:e2e           # Playwright, including axe accessibility checks
-
-npm run storybook          # component workshop at http://localhost:6006
-npm run build-storybook    # static Storybook in storybook-static/
-npm run test:stories       # axe on every story (run build-storybook first)
-
-npm run screenshots        # retake docs/ screenshots (run build first)
-```
-
-`npm test` and the Storybook scripts go through `scripts/run.mjs`. VS Code's terminal reports the folder as `c:\...` with a lowercase drive letter, which breaks Vitest (every suite fails with "failed to find the current suite") and Storybook (every story fails to load). The script starts the tool from `C:\...` instead. Use the npm scripts, not `npx vitest` directly.
-
-On macOS or Linux the same commands work in any shell.
 
 ## Controls
 
