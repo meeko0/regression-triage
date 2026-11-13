@@ -15,6 +15,8 @@
     "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/orbitron": "^5.3.0",
     "@tanstack/react-query": "^5.107.1",
     "clsx": "^2.1.1",
     "motion": "^14.14.0",

@@ -25,8 +25,8 @@ export function FailureList({ failures, selectedId, onSelect }: FailureListProps
   if (failures.length === 0) {
     return (
       <div className="border border-dashed border-line p-10 text-center">
-        <p className="font-display text-2xl font-bold">Nothing matches these filters.</p>
-        <p className="mt-2 text-sm text-muted">Clear a filter to see the rest of the run.</p>
+        <p className="font-display text-display-sm font-bold">Nothing matches these filters.</p>
+        <p className="mt-2 text-body-sm text-muted">Clear a filter to see the rest of the run.</p>
       </div>
     )
   }
@@ -54,7 +54,7 @@ export function FailureList({ failures, selectedId, onSelect }: FailureListProps
                 selected ? 'bg-primary text-paper' : 'hover:bg-primary/5',
               )}
             >
-              <span className={cn('font-display text-2xl font-bold tabular-nums', selected ? 'text-accent-soft' : 'text-muted')}>
+              <span className={cn('font-display text-display-sm font-bold tabular-nums', selected ? 'text-accent-soft' : 'text-muted')}>
                 {String(index + 1).padStart(2, '0')}
               </span>
 
@@ -64,7 +64,7 @@ export function FailureList({ failures, selectedId, onSelect }: FailureListProps
                   {isBlocking(failure) && (
                     <span
                       className={cn(
-                        'shrink-0 text-[10px] uppercase tracking-[0.14em]',
+                        'label-micro shrink-0',
                         selected ? 'text-paper' : 'text-risk-high',
                       )}
                     >
@@ -72,7 +72,7 @@ export function FailureList({ failures, selectedId, onSelect }: FailureListProps
                     </span>
                   )}
                 </span>
-                <span className={cn('mt-1 block truncate text-sm', selected ? 'text-paper/75' : 'text-muted')}>
+                <span className={cn('mt-1 block truncate text-body-sm', selected ? 'text-paper/75' : 'text-muted')}>
                   {failure.group} · {failure.assembly}
                 </span>
               </span>

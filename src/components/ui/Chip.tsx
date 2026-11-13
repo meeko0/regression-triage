@@ -15,7 +15,7 @@ export function Chip({ active, onClick, children, count }: ChipProps) {
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'h-8 border px-3 text-[11px] uppercase tracking-[0.14em] transition-colors',
+        'label-micro h-8 border px-3 transition-colors',
         active
           ? 'border-primary bg-primary text-paper'
           : 'border-line text-muted hover:border-primary hover:text-primary',

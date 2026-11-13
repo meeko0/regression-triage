@@ -11,7 +11,7 @@ export function StatusPill({ status }: { status: Status }) {
   return (
     <span
       className={cn(
-        'border px-2 py-1 text-[11px] uppercase tracking-[0.12em]',
+        'label-micro whitespace-nowrap border px-2 py-1',
         status === 'open' && 'border-primary bg-primary text-paper group-aria-selected:border-paper group-aria-selected:bg-paper group-aria-selected:text-primary',
         status === 'investigating' && 'border-primary text-primary group-aria-selected:border-paper group-aria-selected:text-paper',
         status === 'resolved' && 'border-line text-muted group-aria-selected:border-paper/75 group-aria-selected:text-paper/75',

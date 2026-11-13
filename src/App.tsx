@@ -64,7 +64,7 @@ export default function App() {
   if (isPending) {
     return (
       <main className="flex h-full items-center justify-center">
-        <p className="font-display text-3xl font-bold" role="status">
+        <p className="font-display text-display-md font-bold" role="status">
           Loading the run…
         </p>
       </main>
@@ -74,7 +74,7 @@ export default function App() {
   if (isError) {
     return (
       <main className="flex h-full flex-col items-center justify-center gap-4">
-        <p className="font-display text-3xl font-bold">Couldn’t load this run.</p>
+        <p className="font-display text-display-md font-bold">Couldn’t load this run.</p>
         <Button variant="solid" onClick={() => refetch()}>
           Try again
         </Button>

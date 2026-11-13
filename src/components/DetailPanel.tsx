@@ -49,32 +49,32 @@ export function DetailPanel({ failure, pending, error, onStatus }: DetailPanelPr
             className="flex flex-col gap-8 p-8"
           >
             <div className="flex items-start justify-between gap-4">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+              <p className="label-micro text-muted">
                 {failure.id} · {failure.group}
               </p>
               <StatusPill status={failure.status} />
             </div>
 
             <div>
-              <h2 className="font-display text-4xl font-bold leading-[0.95] tracking-[-0.03em]">
+              <h2 className="font-display text-display-md font-bold">
                 <PartTitle name={failure.part} />
               </h2>
-              <p className="mt-3 text-sm text-muted">{failure.assembly}</p>
+              <p className="mt-3 text-body-sm text-muted">{failure.assembly}</p>
             </div>
 
-            <p className="text-lg leading-snug">{failure.summary}</p>
+            <p className="text-body-lg">{failure.summary}</p>
 
             <div className="flex flex-col gap-3">
-              <p className="text-[11px] uppercase tracking-[0.14em] text-muted">Risk</p>
+              <p className="label-display text-muted">Risk</p>
               <RiskBar risk={failure.risk} size="lg" />
             </div>
 
             <div className="border-t border-line pt-6">
-              <p className="text-[11px] uppercase tracking-[0.14em] text-muted">Suggested next step</p>
+              <p className="label-display text-muted">Suggested next step</p>
               <p className="mt-2 leading-relaxed">{failure.suggestedAction}</p>
             </div>
 
-            <p className="text-xs text-muted">
+            <p className="text-caption text-muted">
               Detected {timeFormat.format(new Date(failure.detectedAt))}, run started{' '}
               {timeFormat.format(new Date(RUN_START))}
             </p>
@@ -97,7 +97,7 @@ export function DetailPanel({ failure, pending, error, onStatus }: DetailPanelPr
             </div>
 
             {error && (
-              <p role="alert" className="text-sm text-risk-high">
+              <p role="alert" className="text-body-sm text-risk-high">
                 {error}
               </p>
             )}
@@ -110,8 +110,8 @@ export function DetailPanel({ failure, pending, error, onStatus }: DetailPanelPr
             exit={{ opacity: 0 }}
             className="flex min-h-[320px] flex-col justify-between p-8"
           >
-            <p className="font-display text-3xl font-bold leading-tight">Select a failure to see what to do next.</p>
-            <p className="text-sm text-muted">Use the arrow keys or J and K to move through the list.</p>
+            <p className="font-display text-display-md font-bold">No failure selected.</p>
+            <p className="text-body-sm text-muted">Pick a row, or use the arrow keys or J and K to move through the list.</p>
           </motion.div>
         )}
       </AnimatePresence>

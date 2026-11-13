@@ -12,15 +12,15 @@ export function Header({ failures }: HeaderProps) {
   return (
     <header className="flex flex-col gap-8 border-b-4 border-accent pb-8">
       <div className="flex items-baseline justify-between gap-6">
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+        <p className="label-micro text-muted">
           Nightly run {RUN_ID} · Mock data
         </p>
-        <p className="hidden text-[11px] uppercase tracking-[0.18em] text-muted sm:block">
+        <p className="label-micro hidden text-muted sm:block">
           Use ↑ ↓ or J K to move
         </p>
       </div>
 
-      <h1 className="font-display text-[clamp(3rem,8vw,6.5rem)] font-bold leading-[0.9] tracking-[-0.04em]">
+      <h1 className="font-display text-display-xl font-black tracking-[-0.01em]">
         Regression
         <br />
         {/* Olive is only used at display size: 3.68:1 on paper passes the 3:1 large-text minimum. */}
@@ -40,12 +40,12 @@ export function Header({ failures }: HeaderProps) {
 function Stat({ label, value, emphasis = false }: { label: string; value: number; emphasis?: boolean }) {
   return (
     <div>
-      <dt className="text-[11px] uppercase tracking-[0.14em] text-muted">{label}</dt>
+      <dt className="label-display text-muted">{label}</dt>
       <dd
         className={
           emphasis
-            ? 'font-display text-5xl font-bold tabular-nums text-risk-high'
-            : 'font-display text-5xl font-bold tabular-nums'
+            ? 'mt-2 font-display text-stat font-bold tabular-nums text-risk-high'
+            : 'mt-2 font-display text-stat font-bold tabular-nums'
         }
       >
         {value}

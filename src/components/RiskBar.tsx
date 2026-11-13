@@ -37,7 +37,7 @@ export function RiskBar({ risk, className, size = 'sm' }: RiskBarProps) {
         />
       </div>
       {size === 'sm' && (
-        <span className="w-6 text-right text-xs tabular-nums text-muted group-aria-selected:text-paper/75">{risk}</span>
+        <span className="w-6 text-right text-caption tabular-nums text-muted group-aria-selected:text-paper/75">{risk}</span>
       )}
     </div>
   )
