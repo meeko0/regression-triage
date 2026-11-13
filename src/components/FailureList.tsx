@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
 import type { Failure } from '../types'
 import { isBlocking, isOverdue } from '../lib/triage'
@@ -11,6 +12,8 @@ interface FailureListProps {
   failures: Failure[]
   selectedId: string | null
   onSelect: (id: string) => void
+  /** Shown when the list is empty. */
+  empty?: ReactNode
 }
 
 const container = {
@@ -23,14 +26,9 @@ const row = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] as const } },
 }
 
-export function FailureList({ failures, selectedId, onSelect }: FailureListProps) {
+export function FailureList({ failures, selectedId, onSelect, empty }: FailureListProps) {
   if (failures.length === 0) {
-    return (
-      <div className="border border-dashed border-line p-10 text-center">
-        <p className="font-display text-display-sm font-bold">Nothing matches these filters.</p>
-        <p className="mt-2 text-body-sm text-muted">Clear a filter to see the rest of the run.</p>
-      </div>
-    )
+    return <>{empty ?? <p className="text-body-sm text-muted">No failures to show.</p>}</>
   }
 
   return (

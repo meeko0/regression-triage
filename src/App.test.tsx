@@ -9,6 +9,7 @@ import { setClock } from './lib/dates'
 import { CURRENT_USER_ID } from './data/team'
 import { startUrlSync } from './store/urlSync'
 import { useTriageStore } from './store/triageStore'
+import { failNextFetch } from './api/failures'
 import { NOTES_STORAGE_KEY } from './store/notesStore'
 
 const listOptions = () => within(screen.getByRole('listbox', { name: 'Failures' })).getAllByRole('option')
@@ -129,6 +130,50 @@ describe('App', () => {
     await waitFor(() => expect(listOptions()).toHaveLength(RUNS[2].count))
     // The selection resets, then falls back to the first row of the new run.
     expect(listOptions()[0]).toHaveAttribute('aria-selected', 'true')
+  })
+
+  describe('loading, empty, and error states', () => {
+    it('shows skeleton rows while the run loads', async () => {
+      renderApp()
+      expect(screen.getByRole('status', { name: 'Loading the run' })).toBeInTheDocument()
+      expect(screen.getAllByTestId('skeleton-row').length).toBeGreaterThan(0)
+      await findListOptions()
+      expect(screen.queryByTestId('skeleton-row')).not.toBeInTheDocument()
+    })
+
+    it('explains which filters hide the results and clears them', async () => {
+      const user = userEvent.setup()
+      renderApp()
+      await findListOptions()
+
+      // Resolved failures are never blocking, so these two together hide everything.
+      await user.click(screen.getByRole('button', { name: /^resolved/i }))
+      await user.click(screen.getByRole('button', { name: /^blocking only/i }))
+
+      expect(await screen.findByText('Nothing matches these filters.')).toBeInTheDocument()
+      expect(screen.getByText(new RegExp(`hide all ${MOCK_FAILURES.length} failures`))).toBeInTheDocument()
+      const active = screen.getByRole('list', { name: 'Active filters' })
+      expect(within(active).getAllByRole('button').map(b => b.textContent)).toEqual(['Status: Resolved×', 'Blocking only×'])
+
+      await user.click(within(active).getByRole('button', { name: 'Remove filter Blocking only' }))
+      await waitFor(() =>
+        expect(listOptions()).toHaveLength(MOCK_FAILURES.filter(f => f.status === 'resolved').length),
+      )
+
+      await user.click(screen.getByRole('button', { name: /^blocking only/i }))
+      await user.click(await screen.findByRole('button', { name: 'Clear all filters' }))
+      await waitFor(() => expect(listOptions()).toHaveLength(MOCK_FAILURES.length))
+    })
+
+    it('shows an error with a retry when the run fails to load', async () => {
+      const user = userEvent.setup()
+      failNextFetch()
+      renderApp()
+
+      expect(await screen.findByText('Couldn’t load this run.')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Try again' }))
+      expect(await findListOptions()).toHaveLength(MOCK_FAILURES.length)
+    })
   })
 
   describe('command palette', () => {

@@ -8,6 +8,10 @@ import { OverviewCharts } from './components/OverviewCharts'
 import { CommandPalette } from './components/CommandPalette'
 import { DetailSheet } from './components/DetailSheet'
 import { useDetailLayout } from './hooks/useDetailLayout'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { RegionError } from './components/RegionError'
+import { SkeletonCharts, SkeletonList } from './components/SkeletonList'
+import { EmptyFilters } from './components/EmptyFilters'
 import { Button } from './components/ui/Button'
 import { applyFilters, sortFailures } from './lib/triage'
 import { useTriageStore } from './store/triageStore'
@@ -133,7 +137,7 @@ export default function App() {
             actions={<CommandPalette failures={failures} onJump={jumpTo} />}
           />
 
-          {!isPending && !isError && <OverviewCharts failures={failures} />}
+          {isPending ? <SkeletonCharts /> : !isError && <OverviewCharts failures={failures} />}
 
           <FilterBar
             failures={failures}
@@ -149,30 +153,100 @@ export default function App() {
             onToggleMine={toggleMine}
           />
 
-          {isPending ? (
-            <p className="font-display text-display-sm font-bold" role="status">
-              Loading the run…
-            </p>
-          ) : isError ? (
-            <div className="flex flex-col items-start gap-4 border border-risk-high p-8">
-              <p className="font-display text-display-sm font-bold">Couldn’t load this run.</p>
-              <Button variant="solid" onClick={() => refetch()}>
-                Try again
-              </Button>
-            </div>
-          ) : (
-            <FailureList failures={visible} selectedId={selectedId} onSelect={handleSelect} />
-          )}
+          <ErrorBoundary
+            resetKeys={[runId]}
+            fallback={({ reset }) => (
+              <RegionError
+                title="The list hit an error."
+                actions={
+                  <Button
+                    variant="solid"
+                    onClick={() => {
+                      reset()
+                      refetch()
+                    }}
+                  >
+                    Reload the list
+                  </Button>
+                }
+              >
+                Your filters and notes are safe. Reloading fetches this run again.
+              </RegionError>
+            )}
+          >
+            {isPending ? (
+              <SkeletonList />
+            ) : isError ? (
+              <RegionError
+                title="Couldn’t load this run."
+                actions={
+                  <Button variant="solid" onClick={() => refetch()}>
+                    Try again
+                  </Button>
+                }
+              >
+                The run service did not answer. Your filters and notes are kept.
+              </RegionError>
+            ) : (
+              <FailureList
+                failures={visible}
+                selectedId={selectedId}
+                onSelect={handleSelect}
+                empty={
+                  <EmptyFilters
+                    total={failures.length}
+                    group={group}
+                    status={status}
+                    blockingOnly={blockingOnly}
+                    mine={mine}
+                    onClearGroup={() => setGroup('all')}
+                    onClearStatus={() => setStatus('all')}
+                    onClearBlocking={toggleBlockingOnly}
+                    onClearMine={toggleMine}
+                    onClearAll={clearFilters}
+                  />
+                }
+              />
+            )}
+          </ErrorBoundary>
         </section>
 
-        {layout !== 'sheet' && <DetailPanel {...detailProps} />}
+        {layout !== 'sheet' && <SafeDetailPanel {...detailProps} onClear={() => select(null)} />}
       </div>
 
       {layout === 'sheet' && (
         <DetailSheet open={showSheet} onOpenChange={setSheetOpen} title={selected?.part ?? 'Failure detail'}>
-          <DetailPanel {...detailProps} className="border-0" />
+          <SafeDetailPanel {...detailProps} className="border-0" onClear={() => setSheetOpen(false)} />
         </DetailSheet>
       )}
     </main>
+  )
+}
+
+// The detail panel inside its own error boundary. Choosing another failure resets it.
+function SafeDetailPanel({ onClear, ...props }: DetailPanelProps & { onClear: () => void }) {
+  return (
+    <ErrorBoundary
+      resetKeys={[props.failure?.id]}
+      fallback={({ reset }) => (
+        <RegionError
+          title="This failure couldn’t be shown."
+          actions={
+            <>
+              <Button variant="solid" onClick={onClear}>
+                Clear selection
+              </Button>
+              <Button variant="outline" onClick={reset}>
+                Try again
+              </Button>
+            </>
+          }
+        >
+          The rest of the run still works. Pick another failure from the list.
+        </RegionError>
+      )}
+    >
+      <DetailPanel {...props} />
+    </ErrorBoundary>
   )
 }

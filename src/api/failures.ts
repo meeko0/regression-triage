@@ -44,8 +44,19 @@ function current(runId: string): Failure[] {
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
+let failNext = false
+
+/** Test helper: the next fetch rejects, to exercise error states. */
+export function failNextFetch() {
+  failNext = true
+}
+
 export async function fetchFailures(runId: string): Promise<Failure[]> {
   await delay(350)
+  if (failNext) {
+    failNext = false
+    throw new Error('The run service did not answer')
+  }
   return current(runId)
 }
 
@@ -62,6 +73,7 @@ export async function updateFailure(runId: string, id: string, patch: FailurePat
 // Test helper: restores the seeded data between test cases.
 export function resetMockServer() {
   overrides = {}
+  failNext = false
   try {
     localStorage.removeItem(SERVER_STORAGE_KEY)
   } catch {
