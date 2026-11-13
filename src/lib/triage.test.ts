@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Failure } from '../types'
-import { applyFilters, countByGroup, isBlocking, isOverdue, riskLevel, sortFailures, summarize } from './triage'
+import { applyFilters, countByGroup, isBlocking, isOverdue, riskHistogram, riskLevel, sortFailures, summarize } from './triage'
 
 const fixture: Failure[] = [
   {
@@ -137,5 +137,21 @@ describe('summarize and countByGroup', () => {
 
   it('counts failures per error group', () => {
     expect(countByGroup(fixture)).toEqual({ Interference: 2, Constraints: 1, Mass: 1, References: 0 })
+  })
+})
+
+describe('riskHistogram', () => {
+  it('puts each failure in a 10-point bucket, with 100 in the last one', () => {
+    const at = (risk: number) => ({ ...fixture[0], risk })
+    const buckets = riskHistogram([at(0), at(9), at(10), at(69), at(70), at(99), at(100)])
+    expect(buckets).toHaveLength(10)
+    expect(buckets.map(b => b.count)).toEqual([2, 1, 0, 0, 0, 0, 1, 1, 0, 2])
+    expect(buckets[9]).toMatchObject({ from: 90, to: 100, level: 'high' })
+  })
+
+  it('bands buckets the same way as riskLevel', () => {
+    expect(riskHistogram([]).map(b => b.level)).toEqual([
+      'low', 'low', 'low', 'low', 'mid', 'mid', 'mid', 'high', 'high', 'high',
+    ])
   })
 })

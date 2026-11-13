@@ -4,6 +4,7 @@ import { DetailPanel } from './components/DetailPanel'
 import { FailureList } from './components/FailureList'
 import { FilterBar } from './components/FilterBar'
 import { Header } from './components/Header'
+import { OverviewCharts } from './components/OverviewCharts'
 import { Button } from './components/ui/Button'
 import { applyFilters, sortFailures } from './lib/triage'
 import { useTriageStore } from './store/triageStore'
@@ -91,6 +92,8 @@ export default function App() {
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-16">
         <section className="flex min-w-0 flex-col gap-10">
           <Header runId={runId} onRun={setRun} failures={isPending || isError ? undefined : failures} />
+
+          {!isPending && !isError && <OverviewCharts failures={failures} />}
 
           <FilterBar
             failures={failures}

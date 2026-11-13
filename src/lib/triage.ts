@@ -60,3 +60,24 @@ export function countByGroup(failures: Failure[]): Record<Exclude<GroupFilter, '
   for (const f of failures) counts[f.group] += 1
   return counts
 }
+
+export interface RiskBucket {
+  /** Lowest risk in the bucket, 0, 10, ... 90. */
+  from: number
+  /** Highest risk in the bucket. The last bucket includes 100. */
+  to: number
+  count: number
+  level: RiskLevel
+}
+
+/** Ten 10-point risk buckets. 100 falls in the 90 to 100 bucket. */
+export function riskHistogram(failures: Failure[]): RiskBucket[] {
+  const buckets: RiskBucket[] = Array.from({ length: 10 }, (_, i) => ({
+    from: i * 10,
+    to: i === 9 ? 100 : i * 10 + 9,
+    count: 0,
+    level: riskLevel(i * 10),
+  }))
+  for (const f of failures) buckets[Math.min(9, Math.floor(f.risk / 10))].count += 1
+  return buckets
+}
