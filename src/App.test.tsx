@@ -6,6 +6,7 @@ import App from './App'
 import { MOCK_FAILURES } from './data/mockFailures'
 import { sortFailures } from './lib/triage'
 import { startUrlSync } from './store/urlSync'
+import { NOTES_STORAGE_KEY } from './store/notesStore'
 
 function renderApp() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -81,6 +82,21 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /^newest/i }))
     expect(window.location.search).toContain('sort=newest')
     stop()
+  })
+
+  it('adds a history entry when the status changes, and saves the note', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await screen.findAllByRole('option')
+    const detail = screen.getByRole('complementary', { name: /failure detail/i })
+
+    const action = within(detail).queryByRole('button', { name: 'Mark resolved' }) ?? within(detail).getByRole('button', { name: 'Reopen' })
+    const label = action.textContent === 'Reopen' ? /resolved to open/i : /to resolved/i
+    await user.click(action)
+    expect(await within(detail).findByText(label)).toBeInTheDocument()
+
+    await user.type(within(detail).getByLabelText('Note'), 'Checked with closures')
+    expect(localStorage.getItem(NOTES_STORAGE_KEY)).toContain('Checked with closures')
   })
 })
 

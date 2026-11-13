@@ -7,6 +7,8 @@ import { Header } from './components/Header'
 import { Button } from './components/ui/Button'
 import { applyFilters, sortFailures } from './lib/triage'
 import { useTriageStore } from './store/triageStore'
+import { recordKey, useFailureRecord, useNotesStore } from './store/notesStore'
+import { RUN_ID } from './data/mockFailures'
 
 export default function App() {
   const { data: failures = [], isPending, isError, refetch } = useFailures()
@@ -21,6 +23,9 @@ export default function App() {
   )
 
   const selected = failures.find(f => f.id === selectedId) ?? null
+  const selectedKey = selected ? recordKey(RUN_ID, selected.id) : null
+  const record = useFailureRecord(selectedKey)
+  const setNote = useNotesStore(state => state.setNote)
 
   // Keep the selection inside the visible list. Pick the first row if nothing is selected.
   useEffect(() => {
@@ -111,6 +116,10 @@ export default function App() {
           error={mutation.isError ? 'That change didn’t save. It has been rolled back, so try again.' : null}
           onStatus={nextStatus => {
             if (selected) mutation.mutate({ id: selected.id, status: nextStatus })
+          }}
+          record={record}
+          onNote={note => {
+            if (selectedKey) setNote(selectedKey, note)
           }}
         />
       </div>

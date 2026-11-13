@@ -1,25 +1,28 @@
+import { useId } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { Failure, Status } from '../types'
 import { RUN_START } from '../data/mockFailures'
+import { EMPTY_RECORD, type FailureRecord } from '../store/notesStore'
 import { Button } from './ui/Button'
 import { RiskBar } from './RiskBar'
-import { StatusPill } from './StatusPill'
+import { StatusPill, STATUS_LABEL } from './StatusPill'
 
-interface DetailPanelProps {
+export interface DetailPanelProps {
   failure: Failure | null
   pending: boolean
   error: string | null
   onStatus: (status: Status) => void
+  record?: FailureRecord
+  onNote?: (note: string) => void
 }
 
 // Keeps the part code (for example "R-95") on one line so it never wraps.
 function PartTitle({ name }: { name: string }) {
-  const index = name.lastIndexOf(" ")
+  const index = name.lastIndexOf(' ')
   if (index === -1) return <>{name}</>
   return (
     <>
-      {name.slice(0, index)}{" "}
-      <span className="whitespace-nowrap">{name.slice(index + 1)}</span>
+      {name.slice(0, index)} <span className="whitespace-nowrap">{name.slice(index + 1)}</span>
     </>
   )
 }
@@ -31,7 +34,18 @@ const timeFormat = new Intl.DateTimeFormat('en-US', {
   timeZoneName: 'short',
 })
 
-export function DetailPanel({ failure, pending, error, onStatus }: DetailPanelProps) {
+const dateTimeFormat = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: 'UTC',
+  timeZoneName: 'short',
+})
+
+export function DetailPanel({ failure, pending, error, onStatus, record = EMPTY_RECORD, onNote }: DetailPanelProps) {
+  const noteId = useId()
+
   return (
     <aside
       id="failure-detail"
@@ -46,7 +60,7 @@ export function DetailPanel({ failure, pending, error, onStatus }: DetailPanelPr
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -12 }}
             transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
-            className="flex flex-col gap-8 p-8"
+            className="flex flex-col gap-8 p-6 sm:p-8"
           >
             <div className="flex items-start justify-between gap-4">
               <p className="label-micro text-muted">
@@ -74,11 +88,6 @@ export function DetailPanel({ failure, pending, error, onStatus }: DetailPanelPr
               <p className="mt-2 leading-relaxed">{failure.suggestedAction}</p>
             </div>
 
-            <p className="text-caption text-muted">
-              Detected {timeFormat.format(new Date(failure.detectedAt))}, run started{' '}
-              {timeFormat.format(new Date(RUN_START))}
-            </p>
-
             <div className="flex flex-wrap gap-3 border-t border-line pt-6">
               {failure.status !== 'investigating' && failure.status !== 'resolved' && (
                 <Button variant="outline" disabled={pending} onClick={() => onStatus('investigating')}>
@@ -101,6 +110,46 @@ export function DetailPanel({ failure, pending, error, onStatus }: DetailPanelPr
                 {error}
               </p>
             )}
+
+            <section aria-labelledby={`${noteId}-history`} className="border-t border-line pt-6">
+              <h3 id={`${noteId}-history`} className="label-display text-muted">
+                History
+              </h3>
+              <ol className="mt-3 flex flex-col gap-2 border-l-2 border-line pl-4 text-body-sm">
+                <li>
+                  <span className="font-medium">Detected</span>{' '}
+                  <span className="text-muted">{dateTimeFormat.format(new Date(failure.detectedAt))}</span>
+                </li>
+                {record.history.map((change, i) => (
+                  <li key={`${change.at}-${i}`}>
+                    <span className="font-medium">
+                      {STATUS_LABEL[change.from]} to {STATUS_LABEL[change.to]}
+                    </span>{' '}
+                    <span className="text-muted">{dateTimeFormat.format(new Date(change.at))}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+
+            <div className="flex flex-col gap-2 border-t border-line pt-6">
+              <label htmlFor={`${noteId}-note`} className="label-display text-muted">
+                Note
+              </label>
+              <textarea
+                id={`${noteId}-note`}
+                value={record.note}
+                onChange={event => onNote?.(event.target.value)}
+                rows={3}
+                placeholder="What you found, who you asked, what is next."
+                className="w-full resize-y border border-muted bg-paper p-3 text-body-sm placeholder:text-muted"
+              />
+              <p className="text-caption text-muted">Saved on this device as you type.</p>
+            </div>
+
+            <p className="text-caption text-muted">
+              Detected {timeFormat.format(new Date(failure.detectedAt))}, run started{' '}
+              {timeFormat.format(new Date(RUN_START))}
+            </p>
           </motion.div>
         ) : (
           <motion.div

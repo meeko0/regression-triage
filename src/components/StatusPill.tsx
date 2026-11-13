@@ -1,7 +1,7 @@
 import type { Status } from '../types'
 import { cn } from '../lib/utils'
 
-const LABEL: Record<Status, string> = {
+export const STATUS_LABEL: Record<Status, string> = {
   open: 'Open',
   investigating: 'Investigating',
   resolved: 'Resolved',
@@ -17,7 +17,7 @@ export function StatusPill({ status }: { status: Status }) {
         status === 'resolved' && 'border-line text-muted group-aria-selected:border-paper/75 group-aria-selected:text-paper/75',
       )}
     >
-      {LABEL[status]}
+      {STATUS_LABEL[status]}
     </span>
   )
 }
