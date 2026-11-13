@@ -1,4 +1,4 @@
-import { MOCK_FAILURES, RUN_ID } from '../data/mockFailures'
+import { buildRun, runById } from '../data/mockFailures'
 import type { Failure, FailurePatch } from '../types'
 
 // In-memory stand-in for a real API. Swap these functions for fetch calls later.
@@ -27,28 +27,36 @@ function saveOverrides(overrides: Overrides) {
 }
 
 let overrides: Overrides = loadOverrides()
+const seeded = new Map<string, Failure[]>()
 
-const key = (id: string) => `${RUN_ID}/${id}`
+const key = (runId: string, id: string) => `${runId}/${id}`
 
-function current(): Failure[] {
-  return MOCK_FAILURES.map(f => ({ ...f, ...overrides[key(f.id)] }))
+function seededRun(runId: string): Failure[] {
+  const run = runById(runId)
+  if (!run) throw new Error(`Run ${runId} was not found`)
+  if (!seeded.has(runId)) seeded.set(runId, buildRun(run))
+  return seeded.get(runId)!
+}
+
+function current(runId: string): Failure[] {
+  return seededRun(runId).map(f => ({ ...f, ...overrides[key(runId, f.id)] }))
 }
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-export async function fetchFailures(): Promise<Failure[]> {
+export async function fetchFailures(runId: string): Promise<Failure[]> {
   await delay(350)
-  return current()
+  return current(runId)
 }
 
-export async function updateFailure(id: string, patch: FailurePatch): Promise<Failure> {
+export async function updateFailure(runId: string, id: string, patch: FailurePatch): Promise<Failure> {
   await delay(250)
-  if (!MOCK_FAILURES.some(f => f.id === id)) {
-    throw new Error(`Failure ${id} was not found`)
+  if (!seededRun(runId).some(f => f.id === id)) {
+    throw new Error(`Failure ${id} was not found in ${runId}`)
   }
-  overrides = { ...overrides, [key(id)]: { ...overrides[key(id)], ...patch } }
+  overrides = { ...overrides, [key(runId, id)]: { ...overrides[key(runId, id)], ...patch } }
   saveOverrides(overrides)
-  return current().find(f => f.id === id)!
+  return current(runId).find(f => f.id === id)!
 }
 
 // Test helper: restores the seeded data between test cases.

@@ -12,14 +12,22 @@ describe('searchToView and viewToSearch', () => {
   })
 
   it('round-trips every field', () => {
-    const view = { group: 'Mass', status: 'open', sort: 'newest', blockingOnly: true, mine: true, selectedId: 'RT-007' } as const
+    const view = {
+      runId: 'NIGHTLY-2026-11-10',
+      group: 'Mass',
+      status: 'open',
+      sort: 'newest',
+      blockingOnly: true,
+      mine: true,
+      selectedId: 'RT-007',
+    } as const
     const search = viewToSearch(view)
-    expect(search).toBe('?group=Mass&status=open&sort=newest&blocking=1&mine=1&id=RT-007')
+    expect(search).toBe('?run=NIGHTLY-2026-11-10&group=Mass&status=open&sort=newest&blocking=1&mine=1&id=RT-007')
     expect(searchToView(search)).toEqual(view)
   })
 
   it('ignores invalid values', () => {
-    expect(searchToView('?group=Nope&status=closed&sort=size&blocking=yes&mine=true&id=<script>')).toEqual(initialView)
+    expect(searchToView('?run=NIGHTLY-1999-01-01&group=Nope&status=closed&sort=size&blocking=yes&mine=true&id=<script>')).toEqual(initialView)
   })
 })
 

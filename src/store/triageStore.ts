@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 import type { GroupFilter, SortKey, StatusFilter } from '../types'
+import { LATEST_RUN_ID } from '../data/mockFailures'
 
 // What the user is looking at. This store is the single source of truth for the view.
 // src/store/urlSync.ts mirrors it to the query string and back.
 export interface ViewState {
+  runId: string
   group: GroupFilter
   status: StatusFilter
   sort: SortKey
@@ -13,6 +15,8 @@ export interface ViewState {
 }
 
 interface TriageState extends ViewState {
+  /** Switches runs and clears the selection, since failure IDs belong to a run. */
+  setRun: (runId: string) => void
   setGroup: (group: GroupFilter) => void
   setStatus: (status: StatusFilter) => void
   setSort: (sort: SortKey) => void
@@ -24,6 +28,7 @@ interface TriageState extends ViewState {
 }
 
 export const initialView: ViewState = {
+  runId: LATEST_RUN_ID,
   group: 'all',
   status: 'all',
   sort: 'risk',
@@ -34,6 +39,7 @@ export const initialView: ViewState = {
 
 export const useTriageStore = create<TriageState>()(set => ({
   ...initialView,
+  setRun: runId => set(state => (state.runId === runId ? {} : { runId, selectedId: null })),
   setGroup: group => set({ group }),
   setStatus: status => set({ status }),
   setSort: sort => set({ sort }),

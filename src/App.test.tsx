@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'
 import App from './App'
-import { MOCK_FAILURES } from './data/mockFailures'
+import { MOCK_FAILURES, RUNS } from './data/mockFailures'
 import { isOverdue, sortFailures } from './lib/triage'
 import { setClock } from './lib/dates'
 import { CURRENT_USER_ID } from './data/team'
@@ -28,7 +28,7 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: /regression/i })).toBeInTheDocument()
     const failuresStat = screen.getByText('Failures').parentElement!
-    expect(within(failuresStat).getByText(String(MOCK_FAILURES.length))).toBeInTheDocument()
+    expect(await within(failuresStat).findByText(String(MOCK_FAILURES.length))).toBeInTheDocument()
   })
 
   it('lists every failure as an option', async () => {
@@ -112,6 +112,22 @@ describe('App', () => {
     } finally {
       setClock()
     }
+  })
+
+  it('switches runs, updates the run ID, and resets the selection', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await findListOptions()
+    expect(screen.getByTestId('run-id')).toHaveTextContent(RUNS[0].id)
+
+    await user.keyboard('{ArrowDown}{ArrowDown}')
+    expect(listOptions()[2]).toHaveAttribute('aria-selected', 'true')
+
+    await user.click(screen.getByRole('button', { name: /^nov 10/i }))
+    expect(screen.getByTestId('run-id')).toHaveTextContent(RUNS[2].id)
+    await waitFor(() => expect(listOptions()).toHaveLength(RUNS[2].count))
+    // The selection resets, then falls back to the first row of the new run.
+    expect(listOptions()[0]).toHaveAttribute('aria-selected', 'true')
   })
 
   it('adds a history entry when the status changes, and saves the note', async () => {

@@ -5,8 +5,25 @@ import { addDays } from '../lib/dates'
 // Mock data only. Part names, assemblies, and run IDs are invented.
 // Nothing here comes from a real vehicle program or internal system.
 
-export const RUN_ID = 'NIGHTLY-2026-11-12'
-export const RUN_START = '2026-11-12T23:00:00.000Z'
+export interface Run {
+  id: string
+  start: string // ISO 8601
+  seed: number
+  count: number
+}
+
+// The last three nightly runs, newest first. Same generator, different seed per night.
+export const RUNS: readonly Run[] = [
+  { id: 'NIGHTLY-2026-11-12', start: '2026-11-12T23:00:00.000Z', seed: 20261112, count: 48 },
+  { id: 'NIGHTLY-2026-11-11', start: '2026-11-11T23:00:00.000Z', seed: 20261111, count: 44 },
+  { id: 'NIGHTLY-2026-11-10', start: '2026-11-10T23:00:00.000Z', seed: 20261110, count: 52 },
+]
+
+export const LATEST_RUN_ID = RUNS[0].id
+
+export function runById(id: string): Run | undefined {
+  return RUNS.find(r => r.id === id)
+}
 
 const PARTS = [
   'Front Closure Hinge Bracket',
@@ -95,12 +112,12 @@ function statusFor(roll: number): Status {
   return 'resolved'
 }
 
-export function buildMockFailures(count = 48, seed = 20261112): Failure[] {
+export function buildMockFailures(count = RUNS[0].count, seed = RUNS[0].seed, runStart = RUNS[0].start): Failure[] {
   const rand = mulberry32(seed)
   // A second stream for owners and due dates, so adding them did not change the other fields.
   const assign = mulberry32(seed ^ 0x9e3779b9)
-  const start = Date.parse(RUN_START)
-  const runDate = RUN_START.slice(0, 10)
+  const start = Date.parse(runStart)
+  const runDate = runStart.slice(0, 10)
 
   return Array.from({ length: count }, (_, i) => {
     const group = GROUPS[Math.floor(rand() * GROUPS.length)]
@@ -130,4 +147,9 @@ export function buildMockFailures(count = 48, seed = 20261112): Failure[] {
   })
 }
 
-export const MOCK_FAILURES: Failure[] = buildMockFailures()
+export function buildRun(run: Run): Failure[] {
+  return buildMockFailures(run.count, run.seed, run.start)
+}
+
+/** The latest run. Tests use it as the default data set. */
+export const MOCK_FAILURES: Failure[] = buildRun(RUNS[0])

@@ -8,10 +8,12 @@ import { Button } from './components/ui/Button'
 import { applyFilters, sortFailures } from './lib/triage'
 import { useTriageStore } from './store/triageStore'
 import { recordKey, useFailureRecord, useNotesStore } from './store/notesStore'
-import { RUN_ID } from './data/mockFailures'
+import { runById } from './data/mockFailures'
 
 export default function App() {
-  const { data: failures = [], isPending, isError, refetch } = useFailures()
+  const runId = useTriageStore(state => state.runId)
+  const setRun = useTriageStore(state => state.setRun)
+  const { data: failures = [], isPending, isError, refetch } = useFailures(runId)
   const mutation = useUpdateFailure()
 
   const {
@@ -35,9 +37,13 @@ export default function App() {
   )
 
   const selected = failures.find(f => f.id === selectedId) ?? null
-  const selectedKey = selected ? recordKey(RUN_ID, selected.id) : null
+  const selectedKey = selected ? recordKey(runId, selected.id) : null
   const record = useFailureRecord(selectedKey)
   const setNote = useNotesStore(state => state.setNote)
+
+  // A failed save from another run should not show its error here.
+  const resetMutation = mutation.reset
+  useEffect(() => resetMutation(), [runId, resetMutation])
 
   // Keep the selection inside the visible list. Pick the first row if nothing is selected.
   useEffect(() => {
@@ -80,32 +86,11 @@ export default function App() {
     }
   }
 
-  if (isPending) {
-    return (
-      <main className="flex h-full items-center justify-center">
-        <p className="font-display text-display-md font-bold" role="status">
-          Loading the run…
-        </p>
-      </main>
-    )
-  }
-
-  if (isError) {
-    return (
-      <main className="flex h-full flex-col items-center justify-center gap-4">
-        <p className="font-display text-display-md font-bold">Couldn’t load this run.</p>
-        <Button variant="solid" onClick={() => refetch()}>
-          Try again
-        </Button>
-      </main>
-    )
-  }
-
   return (
     <main className="mx-auto max-w-[1400px] px-6 py-10 sm:px-10 lg:py-16">
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-16">
         <section className="flex min-w-0 flex-col gap-10">
-          <Header failures={failures} />
+          <Header runId={runId} onRun={setRun} failures={isPending || isError ? undefined : failures} />
 
           <FilterBar
             failures={failures}
@@ -121,22 +106,36 @@ export default function App() {
             onToggleMine={toggleMine}
           />
 
-          <FailureList failures={visible} selectedId={selectedId} onSelect={handleSelect} />
+          {isPending ? (
+            <p className="font-display text-display-sm font-bold" role="status">
+              Loading the run…
+            </p>
+          ) : isError ? (
+            <div className="flex flex-col items-start gap-4 border border-risk-high p-8">
+              <p className="font-display text-display-sm font-bold">Couldn’t load this run.</p>
+              <Button variant="solid" onClick={() => refetch()}>
+                Try again
+              </Button>
+            </div>
+          ) : (
+            <FailureList failures={visible} selectedId={selectedId} onSelect={handleSelect} />
+          )}
         </section>
 
         <DetailPanel
           failure={selected}
+          runStart={runById(runId)?.start}
           pending={mutation.isPending}
           error={mutation.isError ? 'That change didn’t save. It has been rolled back, so try again.' : null}
           onStatus={nextStatus => {
-            if (selected) mutation.mutate({ id: selected.id, patch: { status: nextStatus } })
+            if (selected) mutation.mutate({ runId, id: selected.id, patch: { status: nextStatus } })
           }}
           record={record}
           onNote={note => {
             if (selectedKey) setNote(selectedKey, note)
           }}
           onAssign={patch => {
-            if (selected) mutation.mutate({ id: selected.id, patch })
+            if (selected) mutation.mutate({ runId, id: selected.id, patch })
           }}
         />
       </div>

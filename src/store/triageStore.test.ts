@@ -48,3 +48,18 @@ describe('triageStore', () => {
     expect(state.selectedId).toBeNull()
   })
 })
+
+describe('setRun', () => {
+  it('switches runs and clears the selection', () => {
+    useTriageStore.getState().select('RT-004')
+    useTriageStore.getState().setRun('NIGHTLY-2026-11-10')
+    expect(useTriageStore.getState().runId).toBe('NIGHTLY-2026-11-10')
+    expect(useTriageStore.getState().selectedId).toBeNull()
+  })
+
+  it('keeps the selection when the same run is chosen again', () => {
+    useTriageStore.getState().select('RT-004')
+    useTriageStore.getState().setRun(useTriageStore.getState().runId)
+    expect(useTriageStore.getState().selectedId).toBe('RT-004')
+  })
+})

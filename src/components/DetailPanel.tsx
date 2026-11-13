@@ -5,7 +5,6 @@ import { ENGINEERS, isEngineerId } from '../data/team'
 import { formatDue } from '../lib/dates'
 import { isOverdue } from '../lib/triage'
 import { OverdueBadge } from './OverdueBadge'
-import { RUN_START } from '../data/mockFailures'
 import { EMPTY_RECORD, type FailureRecord } from '../store/notesStore'
 import { Button } from './ui/Button'
 import { RiskBar } from './RiskBar'
@@ -13,6 +12,8 @@ import { StatusPill, STATUS_LABEL } from './StatusPill'
 
 export interface DetailPanelProps {
   failure: Failure | null
+  /** When the run started, shown under the detection time. */
+  runStart?: string
   pending: boolean
   error: string | null
   onStatus: (status: Status) => void
@@ -50,6 +51,7 @@ const dateTimeFormat = new Intl.DateTimeFormat('en-US', {
 
 export function DetailPanel({
   failure,
+  runStart,
   pending,
   error,
   onStatus,
@@ -209,8 +211,8 @@ export function DetailPanel({
             </div>
 
             <p className="text-caption text-muted">
-              Detected {timeFormat.format(new Date(failure.detectedAt))}, run started{' '}
-              {timeFormat.format(new Date(RUN_START))}
+              Detected {timeFormat.format(new Date(failure.detectedAt))}
+              {runStart && <>, run started {timeFormat.format(new Date(runStart))}</>}
             </p>
           </motion.div>
         ) : (

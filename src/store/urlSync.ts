@@ -1,5 +1,6 @@
 import type { ErrorGroup, SortKey, Status } from '../types'
 import { initialView, useTriageStore, type ViewState } from './triageStore'
+import { RUNS } from '../data/mockFailures'
 
 // Two-way sync between the view store and the query string.
 // The store stays the single source of truth: the URL is written from it, and read back into it
@@ -8,6 +9,7 @@ import { initialView, useTriageStore, type ViewState } from './triageStore'
 const GROUPS: ErrorGroup[] = ['Interference', 'Constraints', 'Mass', 'References']
 const STATUSES: Status[] = ['open', 'investigating', 'resolved']
 const SORTS: SortKey[] = ['risk', 'newest']
+const RUN_IDS = RUNS.map(r => r.id)
 const ID_PATTERN = /^[A-Z]{2}-\d{3}$/
 
 const oneOf = <T extends string>(values: readonly T[], value: string | null): T | undefined =>
@@ -18,6 +20,7 @@ export function searchToView(search: string): ViewState {
   const params = new URLSearchParams(search)
   const id = params.get('id')
   return {
+    runId: oneOf(RUN_IDS, params.get('run')) ?? initialView.runId,
     group: oneOf(GROUPS, params.get('group')) ?? initialView.group,
     status: oneOf(STATUSES, params.get('status')) ?? initialView.status,
     sort: oneOf(SORTS, params.get('sort')) ?? initialView.sort,
@@ -30,6 +33,7 @@ export function searchToView(search: string): ViewState {
 /** Writes a view as a query string, including the leading "?", or "" for the default view. */
 export function viewToSearch(view: ViewState): string {
   const params = new URLSearchParams()
+  if (view.runId !== initialView.runId) params.set('run', view.runId)
   if (view.group !== initialView.group) params.set('group', view.group)
   if (view.status !== initialView.status) params.set('status', view.status)
   if (view.sort !== initialView.sort) params.set('sort', view.sort)
@@ -41,8 +45,8 @@ export function viewToSearch(view: ViewState): string {
 }
 
 function pickView(state: ViewState): ViewState {
-  const { group, status, sort, blockingOnly, mine, selectedId } = state
-  return { group, status, sort, blockingOnly, mine, selectedId }
+  const { runId, group, status, sort, blockingOnly, mine, selectedId } = state
+  return { runId, group, status, sort, blockingOnly, mine, selectedId }
 }
 
 /**
