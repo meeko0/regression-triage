@@ -5,6 +5,7 @@ import { ENGINEERS, isEngineerId } from '../data/team'
 import { formatDue } from '../lib/dates'
 import { isOverdue } from '../lib/triage'
 import { OverdueBadge } from './OverdueBadge'
+import { cn } from '../lib/utils'
 import { EMPTY_RECORD, type FailureRecord } from '../store/notesStore'
 import { Button } from './ui/Button'
 import { RiskBar } from './RiskBar'
@@ -21,6 +22,7 @@ export interface DetailPanelProps {
   record?: FailureRecord
   onNote?: (note: string) => void
   onAssign?: (patch: Pick<FailurePatch, 'owner' | 'dueDate'>) => void
+  className?: string
 }
 
 // Keeps the part code (for example "R-95") on one line so it never wraps.
@@ -59,6 +61,7 @@ export function DetailPanel({
   record = EMPTY_RECORD,
   onNote,
   onAssign,
+  className,
 }: DetailPanelProps) {
   const noteId = useId()
 
@@ -66,7 +69,10 @@ export function DetailPanel({
     <aside
       id="failure-detail"
       aria-label="Failure detail"
-      className="border border-primary bg-paper lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto"
+      className={cn(
+        'border border-primary bg-paper lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto',
+        className,
+      )}
     >
       <AnimatePresence mode="wait">
         {failure ? (

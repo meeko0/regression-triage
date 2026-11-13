@@ -1,11 +1,13 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useFailures, useUpdateFailure } from './api/queries'
-import { DetailPanel } from './components/DetailPanel'
+import { DetailPanel, type DetailPanelProps } from './components/DetailPanel'
 import { FailureList } from './components/FailureList'
 import { FilterBar } from './components/FilterBar'
 import { Header } from './components/Header'
 import { OverviewCharts } from './components/OverviewCharts'
 import { CommandPalette } from './components/CommandPalette'
+import { DetailSheet } from './components/DetailSheet'
+import { useDetailLayout } from './hooks/useDetailLayout'
 import { Button } from './components/ui/Button'
 import { applyFilters, sortFailures } from './lib/triage'
 import { useTriageStore } from './store/triageStore'
@@ -80,19 +82,44 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [visible, selectedId, select])
 
-  // On small screens the detail panel sits below the list, so bring it into view after a tap.
+  // Narrow screens show the detail in a bottom sheet, opened by a tap. With reduced motion it sits
+  // below the list instead, and reveal() scrolls to it. See useDetailLayout.
+  const { layout, reveal } = useDetailLayout()
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const showSheet = layout === 'sheet' && sheetOpen && selected !== null
+
+  // Widening the window past the breakpoint closes the sheet, so narrowing again does not reopen it.
+  useEffect(() => {
+    if (layout !== 'sheet') setSheetOpen(false)
+  }, [layout])
+
   function handleSelect(id: string) {
     select(id)
-    const narrow = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 1023px)").matches
-    if (narrow) {
-      document.getElementById("failure-detail")?.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
+    if (layout === 'sheet') setSheetOpen(true)
+    else reveal()
   }
 
   // From the command palette. If the current filters hide the failure, clear them so the jump sticks.
   function jumpTo(id: string) {
     if (!visible.some(f => f.id === id)) clearFilters()
     handleSelect(id)
+  }
+
+  const detailProps: DetailPanelProps = {
+    failure: selected,
+    runStart: runById(runId)?.start,
+    pending: mutation.isPending,
+    error: mutation.isError ? 'That change didn’t save. It has been rolled back, so try again.' : null,
+    onStatus: nextStatus => {
+      if (selected) mutation.mutate({ runId, id: selected.id, patch: { status: nextStatus } })
+    },
+    record,
+    onNote: note => {
+      if (selectedKey) setNote(selectedKey, note)
+    },
+    onAssign: patch => {
+      if (selected) mutation.mutate({ runId, id: selected.id, patch })
+    },
   }
 
   return (
@@ -138,23 +165,14 @@ export default function App() {
           )}
         </section>
 
-        <DetailPanel
-          failure={selected}
-          runStart={runById(runId)?.start}
-          pending={mutation.isPending}
-          error={mutation.isError ? 'That change didn’t save. It has been rolled back, so try again.' : null}
-          onStatus={nextStatus => {
-            if (selected) mutation.mutate({ runId, id: selected.id, patch: { status: nextStatus } })
-          }}
-          record={record}
-          onNote={note => {
-            if (selectedKey) setNote(selectedKey, note)
-          }}
-          onAssign={patch => {
-            if (selected) mutation.mutate({ runId, id: selected.id, patch })
-          }}
-        />
+        {layout !== 'sheet' && <DetailPanel {...detailProps} />}
       </div>
+
+      {layout === 'sheet' && (
+        <DetailSheet open={showSheet} onOpenChange={setSheetOpen} title={selected?.part ?? 'Failure detail'}>
+          <DetailPanel {...detailProps} className="border-0" />
+        </DetailSheet>
+      )}
     </main>
   )
 }
