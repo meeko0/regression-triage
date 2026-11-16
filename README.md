@@ -1,6 +1,6 @@
 # Regression triage
 
-A prototype for an engineer checks last night's regression run and decides which failures block the next design release.
+A prototype for an engineer checks a regression run and decides which failures block the next design release.
 
 ![Desktop view at 1440px](docs/screenshot-desktop.png)
 
